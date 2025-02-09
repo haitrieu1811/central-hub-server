@@ -1,6 +1,7 @@
-import { Db, MongoClient } from 'mongodb'
+import { Collection, Db, MongoClient } from 'mongodb'
 
 import { ENV_CONFIG } from '~/constants/config'
+import User from '~/models/databases/User'
 
 const uri = `mongodb+srv://${ENV_CONFIG.DB_USERNAME}:${ENV_CONFIG.DB_PASSWORD}@central-hub-cluster.x1sdk.mongodb.net/?retryWrites=true&w=majority&appName=central-hub-cluster`
 
@@ -21,6 +22,10 @@ class DatabaseService {
       console.log(error)
       throw error
     }
+  }
+
+  get users(): Collection<User> {
+    return this.db.collection(ENV_CONFIG.DB_USERS_COLLECTION)
   }
 }
 
