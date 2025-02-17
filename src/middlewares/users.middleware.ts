@@ -1,23 +1,29 @@
-import { checkSchema } from 'express-validator'
+import { Request } from 'express'
+import { checkSchema, ParamSchema } from 'express-validator'
 
 import { UserRole } from '~/constants/enum'
 import databaseService from '~/services/database.service'
+import { hashPassword } from '~/utils/crypto'
 import { numberEnumToArray } from '~/utils/helpers'
 import { validate } from '~/utils/validation'
 
 const roles = numberEnumToArray(UserRole)
 
+const emailSchema: ParamSchema = {
+  trim: true,
+  notEmpty: {
+    errorMessage: 'Email là bắt buộc.'
+  },
+  isEmail: {
+    errorMessage: 'Email không hợp lệ.'
+  }
+}
+
 export const registerValidator = validate(
   checkSchema(
     {
       email: {
-        trim: true,
-        notEmpty: {
-          errorMessage: 'Email là bắt buộc.'
-        },
-        isEmail: {
-          errorMessage: 'Email không hợp lệ.'
-        },
+        ...emailSchema,
         custom: {
           options: async (value) => {
             const email = await databaseService.users.findOne({ email: value })
@@ -72,6 +78,34 @@ export const registerValidator = validate(
         isIn: {
           options: [roles],
           errorMessage: 'Vai trò người dùng không hợp lệ.'
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const loginValidator = validate(
+  checkSchema(
+    {
+      email: emailSchema,
+      password: {
+        trim: true,
+        notEmpty: {
+          errorMessage: 'Mật khẩu là bắt buộc.'
+        },
+        custom: {
+          options: async (value: string, { req }) => {
+            const user = await databaseService.users.findOne({
+              email: req.body.email,
+              password: hashPassword(value)
+            })
+            if (!user) {
+              throw new Error('Email hoặc mật khẩu không chính xác.')
+            }
+            ;(req as Request).user = user
+            return true
+          }
         }
       }
     },

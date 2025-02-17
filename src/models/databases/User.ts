@@ -20,7 +20,7 @@ type UserContructor = {
 }
 
 class User {
-  _id?: ObjectId
+  _id: ObjectId
   email: string
   password: string
   fullName: string
@@ -50,7 +50,7 @@ class User {
     updatedAt
   }: UserContructor) {
     const date = new Date()
-    this._id = _id
+    this._id = _id || new ObjectId()
     this.email = email
     this.password = password
     this.avatar = avatar || null

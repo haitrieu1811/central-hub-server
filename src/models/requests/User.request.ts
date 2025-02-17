@@ -5,8 +5,6 @@ export type TokenPayload = {
   userVerifyStatus: UserVerifyStatus
   userStatus: UserStatus
   userRole: UserRole
-  iat?: number
-  exp?: number
 }
 
 export type RegisterReqBody = {
