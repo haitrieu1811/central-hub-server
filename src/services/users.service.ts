@@ -2,7 +2,7 @@ import pick from 'lodash/pick'
 import { ObjectId } from 'mongodb'
 
 import { ENV_CONFIG } from '~/constants/config'
-import { TokenType, UserStatus, UserVerifyStatus } from '~/constants/enum'
+import { TokenType, UserRole, UserStatus, UserVerifyStatus } from '~/constants/enum'
 import { RefreshToken } from '~/models/databases/RefreshToken'
 import User from '~/models/databases/User'
 import { RegisterReqBody, TokenPayload } from '~/models/requests/User.request'
@@ -148,6 +148,53 @@ class UsersService {
       token: refreshToken
     })
     return true
+  }
+
+  // Refresh token
+  async refreshToken({
+    oldRefreshToken,
+    userId,
+    userStatus,
+    userVerifyStatus,
+    userRole,
+    exp
+  }: {
+    oldRefreshToken: string
+    userId: string
+    userStatus: UserStatus
+    userVerifyStatus: UserVerifyStatus
+    userRole: UserRole
+    exp: number
+  }) {
+    // Tạo access token và refresh token mới
+    const [newAccessToken, newRefreshToken] = await this.signAccessAndRefreshToken({
+      userId,
+      userStatus,
+      userVerifyStatus,
+      userRole,
+      exp
+    })
+    console.log('>>> newRefreshToken', newRefreshToken)
+    console.log('>>> oldRefreshToken', oldRefreshToken)
+    // Giải mã refresh token mới
+    const decodedRefreshToken = await this.decodedRefreshToken(newRefreshToken)
+    // Lưu refresh token mới vào DB và xóa refresh token cũ
+    await Promise.all([
+      databaseService.refreshTokens.insertOne(
+        new RefreshToken({
+          token: newRefreshToken,
+          iat: decodedRefreshToken.iat,
+          exp: decodedRefreshToken.exp
+        })
+      ),
+      databaseService.refreshTokens.deleteOne({
+        token: oldRefreshToken
+      })
+    ])
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 import { Request } from 'express'
 import { checkSchema, ParamSchema } from 'express-validator'
-import { JsonWebTokenError } from 'jsonwebtoken'
+import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken'
 import capitalize from 'lodash/capitalize'
 
 import { ENV_CONFIG } from '~/constants/config'
@@ -152,6 +152,12 @@ export const refreshTokenValidator = validate(
               return true
             } catch (error) {
               if (error instanceof JsonWebTokenError) {
+                if (error instanceof TokenExpiredError) {
+                  throw new ErrorWithStatus({
+                    message: 'Refresh token đã hết hạn.',
+                    status: HTTP_STATUS.UNAUTHORIZED
+                  })
+                }
                 throw new ErrorWithStatus({
                   message: capitalize(error.message),
                   status: HTTP_STATUS.UNAUTHORIZED

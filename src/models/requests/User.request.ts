@@ -14,6 +14,6 @@ export type RegisterReqBody = {
   role: UserRole
 }
 
-export type LogoutReqBody = {
+export type RefreshTokenReqBody = {
   refreshToken: string
 }
