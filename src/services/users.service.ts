@@ -141,6 +141,14 @@ class UsersService {
       user: configuredUser
     }
   }
+
+  // Đăng xuất
+  async logout(refreshToken: string) {
+    await databaseService.refreshTokens.deleteOne({
+      token: refreshToken
+    })
+    return true
+  }
 }
 
 const usersService = new UsersService()

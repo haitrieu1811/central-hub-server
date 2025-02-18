@@ -13,3 +13,7 @@ export type RegisterReqBody = {
   confirmPassword: string
   role: UserRole
 }
+
+export type LogoutReqBody = {
+  refreshToken: string
+}
